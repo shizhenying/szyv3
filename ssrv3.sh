@@ -63,46 +63,60 @@ return 1
 }
 #一键SS-panel V3_mod_panel搭建 
 function install_ss_panel_mod_v3(){
-	yum -y remove httpd
-	yum install -y unzip zip git
-    wget -c https://git.oschina.net/marisn/ssr_v3/raw/master/lnmp1.3.zip && unzip lnmp1.3.zip && cd lnmp1.3 && chmod +x install.sh && ./install.sh lnmp
-	cd /home/wwwroot/default/
-	rm -rf index.html
-	git clone https://git.oschina.net/marisn/mod.git tmp && mv tmp/.git . && rm -rf tmp && git reset --hard
-	cp config/.config.php.example config/.config.php
-	chattr -i .user.ini
-	mv .user.ini public
-	chown -R root:root *
-	chmod -R 777 *
-	chown -R www:www storage
-	chattr +i public/.user.ini
-	wget -N -P  /usr/local/nginx/conf/ http://home.ustc.edu.cn/~mmmwhy/nginx.conf 
-	service nginx restart
-	mysql -uroot -proot -e"create database sspanel;" 
-	mysql -uroot -proot -e"use sspanel;" 
-	mysql -uroot -proot sspanel < /home/wwwroot/default/sql/sspanel.sql
-	cd /home/wwwroot/default
-	php composer.phar install
-	php -n xcat initdownload
-	yum -y install vixie-cron crontabs
-	rm -rf /var/spool/cron/root
-	echo 'SHELL=/bin/bash' >> /var/spool/cron/root
-	echo 'PATH=/sbin:/bin:/usr/sbin:/usr/bin' >> /var/spool/cron/root
-	echo '0 0 * * * php /home/wwwroot/default/xcat dailyjob' >> /var/spool/cron/root
-	echo '*/1 * * * * php /home/wwwroot/default/xcat checkjob' >> /var/spool/cron/root
-	echo "*/1 * * * * php /home/wwwroot/default/xcat synclogin" >> /var/spool/cron/root
-	echo "*/1 * * * * php /home/wwwroot/default/xcat syncvpn" >> /var/spool/cron/root
-	echo '*/20 * * * * /usr/sbin/ntpdate pool.ntp.org > /dev/null 2>&1' >> /var/spool/cron/root
-	echo '30 22 * * * php /home/wwwroot/default/xcat sendDiaryMail' >> /var/spool/cron/root
-	/sbin/service crond restart
-	IPAddress=`wget http://members.3322.org/dyndns/getip -O - -q ; echo`;
-	echo "#############################################################"
-	echo "# 前端部分安装完成，登录http://${IPAddress}看看吧~          #"
-	echo "#默认账号：marisn@67cc.cn                                   #"
-	echo "#默认密码：marisn                                           #"
-	echo "#搭建完后请务必在前端后台更改账号密码                       #"
-	echo "#完成前端搭建请在网站内新建节点                             #"
-	echo "#############################################################"
+yum -y remove httpd
+yum install -y unzip zip git
+wget -c https://git.oschina.net/marisn/ssr_v3/raw/master/lnmp1.3.zip && unzip lnmp1.3.zip && cd lnmp1.3 && chmod +x install.sh && ./install.sh lnmp
+cd /home/wwwroot/default/
+rm -rf index.html
+git clone https://git.oschina.net/marisn/mod.git tmp && mv tmp/.git . && rm -rf tmp && git reset --hard
+cp config/.config.php.example config/.config.php
+chattr -i .user.ini
+mv .user.ini public
+chown -R root:root *
+chmod -R 777 *
+chown -R www:www storage
+chattr +i public/.user.ini
+wget -N -P  /usr/local/nginx/conf/ http://home.ustc.edu.cn/~mmmwhy/nginx.conf 
+service nginx restart
+mysql -uroot -proot -e"create database sspanel;" 
+mysql -uroot -proot -e"use sspanel;" 
+mysql -uroot -proot sspanel < /home/wwwroot/default/sql/sspanel.sql
+cd /home/wwwroot/default
+php composer.phar install
+php -n xcat initdownload
+echo "
+#!/bin/bash
+lnmp restart
+echo -e 'SSR前端重启成功'
+">>/bin/QD
+chmod 777 /bin/QD
+echo "
+#!/bin/bash
+bash /root/shadowsocks/stop.sh
+bash /root/shadowsocks/run.sh
+echo -e 'SSR后端重启成功'
+">>/bin/HD
+chmod 777 /bin/HD
+yum -y install vixie-cron crontabs
+rm -rf /var/spool/cron/root
+echo 'SHELL=/bin/bash' >> /var/spool/cron/root
+echo 'PATH=/sbin:/bin:/usr/sbin:/usr/bin' >> /var/spool/cron/root
+echo '0 0 * * * php /home/wwwroot/default/xcat dailyjob' >> /var/spool/cron/root
+echo '*/1 * * * * php /home/wwwroot/default/xcat checkjob' >> /var/spool/cron/root
+echo "*/1 * * * * php /home/wwwroot/default/xcat synclogin" >> /var/spool/cron/root
+echo "*/1 * * * * php /home/wwwroot/default/xcat syncvpn" >> /var/spool/cron/root
+echo '*/20 * * * * /usr/sbin/ntpdate pool.ntp.org > /dev/null 2>&1' >> /var/spool/cron/root
+echo '30 22 * * * php /home/wwwroot/default/xcat sendDiaryMail' >> /var/spool/cron/root
+/sbin/service crond restart
+IPAddress=`wget http://members.3322.org/dyndns/getip -O - -q ; echo`;
+echo "#############################################################"
+echo "# 前端部分安装完成，登录http://${IPAddress}看看吧~          #"
+echo "#默认账号：marisn@67cc.cn                                   #"
+echo "#默认密码：marisn                                           #"
+echo "#搭建完后请务必在前端后台更改账号密码                       #"
+echo "#完成前端搭建请在网站内新建节点                             #"
+echo "#前端重启命令:QD          后端重启命令:HD                   #"
+echo "#############################################################"
 }
 # 一键添加SS-panel节点
 function install_centos_ssr(){
