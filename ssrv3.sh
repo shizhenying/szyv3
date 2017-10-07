@@ -94,7 +94,6 @@ function install_centos_ssr(){
 	yum -y install git 
 	yum -y install python-setuptools && easy_install pip 
 	yum -y groupinstall "Development Tools" 
-	#512M的小鸡增加1G的Swap分区
 	dd if=/dev/zero of=/var/swap bs=1024 count=1048576
 	mkswap /var/swap
 	chmod 0644 /var/swap
@@ -107,10 +106,8 @@ function install_centos_ssr(){
 	ldconfig
 	yum -y install python-setuptools
 	easy_install supervisor
-	#clone shadowsocks
 	cd /root
 	git clone -b manyuser https://github.com/glzjin/shadowsocks.git "/root/shadowsocks"
-	#install devel
 	cd /root/shadowsocks
 	yum -y install lsof lrzsz
 	yum -y install python-devel
@@ -137,7 +134,6 @@ function install_ubuntu_ssr(){
 	cd shadowsocks
 	pip install -r requirements.txt
 	chmod +x *.sh
-	# 配置程序
 	cp apiconfig.py userapiconfig.py
 	cp config.json user-config.json
 }
@@ -218,7 +214,7 @@ echo -e "\033[37m#2.  一键添加SS-panel节点                                
 echo -e "\033[36m#3.  一键  BBR加速  搭建                                    #\033[0m"
 echo -e "\033[35m#4.  一键锐速破解版搭建                                     #\033[0m"
 echo -e "\033[34m#                              PS:建议先搭建加速再搭建SSR-V3#\033[0m"
-echo -e "\033[33m#                       已兼容  ubuntu or Centos 6.x 7.x系统#\033[0m"
+echo -e "\033[33m#                       已兼容     ubuntu or Centos  7.x系统#\033[0m"
 echo -e "\033[31m#############################################################\033[0m"
 echo
 read num
