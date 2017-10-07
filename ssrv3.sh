@@ -25,42 +25,6 @@ if [ "$inputPass" != "$pass" ];then
      echo -e "\033[31m很抱歉,输入错误\033[0m";
      exit 1;
 fi;
-function UTC() {
-echo
-echo "正在同步时间..."
-echo 
-echo "如果提示ERROR请无视..."
-systemctl stop ntpd.service >/dev/null 2>&1
-service ntpd stop >/dev/null 2>&1
-\cp -rf /usr/share/zoneinfos/Asia/Shanghai /etc/localtime >/dev/null 2>&1
-ntpServer=(
-[0]=s2c.time.edu.cn
-[1]=s2m.time.edu.cn
-[2]=s1a.time.edu.cn
-[3]=s2g.time.edu.cn
-[4]=s2k.time.edu.cn
-[5]=cn.ntp.org.cn
-)
-serverNum=`echo ${#ntpServer[*]}`
-NUM=0
-for (( i=0; i<=$serverNum; i++ )); do
-    echo
-    echo -en "正在和NTP服务器 \033[34m${ntpServer[$NUM]} \033[0m 同步中..."
-    ntpdate ${ntpServer[$NUM]} >> /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        echo -e "\t\t\t[  \e[1;32mOK\e[0m  ]"
-		echo -e "当前时间：\033[34m$(date -d "2 second" +"%Y-%m-%d %H:%M.%S")\033[0m"
-    else
-        echo -e "\t\t\t[  \e[1;31mERROR\e[0m  ]"
-        let NUM++
-    fi
-    #sleep 2
-done
-hwclock --systohc
-systemctl start ntpd.service >/dev/null 2>&1
-service ntpd start >/dev/null 2>&1
-return 1
-}
 #一键SS-panel V3_mod_panel搭建 
 function install_ss_panel_mod_v3(){
 yum -y remove httpd
@@ -108,6 +72,12 @@ echo "*/1 * * * * php /home/wwwroot/default/xcat syncvpn" >> /var/spool/cron/roo
 echo '*/20 * * * * /usr/sbin/ntpdate pool.ntp.org > /dev/null 2>&1' >> /var/spool/cron/root
 echo '30 22 * * * php /home/wwwroot/default/xcat sendDiaryMail' >> /var/spool/cron/root
 /sbin/service crond restart
+#修复数据库
+mv /home/wwwroot/default/phpmyadmin/ /home/wwwroot/default/public/
+cd /home/wwwroot/default/public/phpmyadmin
+chmod -R 755 *
+wget -N -P  /usr/local/php/etc/ https://gitee.com/marisn/ssr_v3/raw/master/php.ini
+lnmp restart
 IPAddress=`wget http://members.3322.org/dyndns/getip -O - -q ; echo`;
 echo "#############################################################"
 echo "# 前端部分安装完成，登录http://${IPAddress}看看吧~          #"
@@ -201,7 +171,7 @@ function install_node(){
 	}
 	# 取消文件数量限制
 	sed -i '$a * hard nofile 512000\n* soft nofile 512000' /etc/security/limits.conf
-	read -p "请输入你的域名(请加上http:// 如果是本机请直接回车): " Userdomain
+	read -p "请输入你的对接域名或IP(请加上http:// 如果是本机请直接回车): " Userdomain
 	read -p "请输入muKey(在你的配置文件中 如果是本机请直接回车):" Usermukey
 	read -p "请输入你的节点编号(非常重要，必须填，不能回车):  " UserNODE_ID
 	install_ssr_for_each
@@ -228,7 +198,6 @@ function install_node(){
 	echo 'iptables-restore /etc/sysconfig/iptables' >> /etc/rc.local
 	echo "/usr/bin/supervisord -c /etc/supervisord.conf" >> /etc/rc.local
 	chmod +x /etc/rc.d/rc.local
-	UTC
 	echo "#############################################################"
 	echo "#          安装完成，节点即将重启使配置生效                 #"
 	echo "#############################################################"
